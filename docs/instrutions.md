@@ -3,8 +3,8 @@
 ## Ingesting data
 
 - Download the dataset from 'data\source\data.txt'
-- Create an Azure Linux VM > Docker container > mcr.microsoft.com/mssql/server:2022-latest
-- Spin up the Legacy MSSQL Server on the Azure VM
+- Create a GCP Compute Engine Linux VM > Docker container > mcr.microsoft.com/mssql/server:2022-latest
+- Spin up the Legacy MSSQL Server on the GCP VM
 ```
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=FdeEnterprisePass123!" -p 1433:1433 --name legacy-mssql -d mcr.microsoft.com/mssql/server:2022-latest
 
@@ -18,7 +18,7 @@ docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=FdeEnterprisePass123!" \
    -p 1433:1433 --name legacy-mssql \
    -d mcr.microsoft.com/mssql/server:2022-latest
 
-# or multi-line with a persistent volume on the Azure VM
+# or multi-line with a persistent volume on the GCP VM
 docker run -v mssql_data:/var/opt/mssql \
   -e "ACCEPT_EULA=Y" \
   -e "MSSQL_SA_PASSWORD=FdeEnterprisePass123!" \
@@ -57,14 +57,14 @@ We need to query the database
 - SQL
 - SELECT COUNT(*) AS total_rows FROM dbo.TBL_SC_FLEET_HIST_RAW;
 
-## Instructions for the Azure VM database
-- Create an Azure Linux VM with at least 2 vCPUs, 8 GB RAM, and 30 GB of storage.
+## Instructions for the GCP VM database
+- Create a GCP Compute Engine VM with at least 2 vCPUs, 8 GB RAM, and 30 GB of storage.
 - Use Ubuntu 22.04 LTS or a later supported Ubuntu image.
-- Create or attach an Azure Network Security Group (NSG).
+- Configure GCP VPC firewall rules.
 - Allow inbound SSH (TCP 22) only from your administration IP.
 - Allow inbound Streamlit traffic (TCP 8501) only when the application must be public.
 - Do not expose SQL Server (TCP 1433) publicly; restrict it to the VM, private network, or trusted administration IPs.
-- Create or download an SSH key for the VM and connect with it from your system.
+- Create or register an SSH key for the VM and connect with it from your system.
 - Install Docker on the VM before running the SQL Server container.
 - install the docker
 - 
@@ -76,7 +76,7 @@ docker run -v mssql_data:/var/opt/mssql \
   --name legacy-mssql \
   -d mcr.microsoft.com/mssql/server:2022-latest
 ```
-- copy the public IP address or DNS name of the Azure VM
+- copy the public IP address or DNS name of the GCP VM
 
 # Phase 1
 
@@ -210,14 +210,14 @@ sudo systemctl enable streamlit
 sudo systemctl start streamlit
 ```
 
-### Azure deployment notes
+### GCP deployment notes
 
-The deployment target is an Azure Linux VM. Configure these GitHub Actions environment secrets for `.github/workflows/deploy.yml`:
+The deployment target is a GCP Compute Engine Linux VM. Configure these GitHub Actions environment secrets for `.github/workflows/deploy.yml`:
 
 ```text
-AZURE_VM_HOST      Azure VM public IP address or DNS name
-AZURE_VM_USER      Linux administrator username
-AZURE_VM_SSH_KEY   Private SSH key for the Azure VM
+GCP_VM_HOST      GCP VM public IP address or DNS name
+GCP_VM_USER      Linux administrator username
+GCP_VM_SSH_KEY   Private SSH key for the GCP VM
 ```
 
-The application uses Pinecone for vector search. Pinecone's `cloud="aws"` setting identifies the Pinecone serverless region and is independent of the Azure VM hosting this application. Keep it unless the Pinecone index is intentionally migrated to another supported region.
+The application uses Pinecone for vector search. Pinecone's `cloud="aws"` setting identifies the Pinecone serverless region and is independent of the GCP VM hosting this application. Keep it unless the Pinecone index is intentionally migrated to another supported region.
